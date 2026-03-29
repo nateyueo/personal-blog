@@ -1,0 +1,88 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="收藏" description="你收藏的文章">
+  <div class="container py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">🔖 我的收藏</h1>
+      <p class="text-[var(--color-text-secondary)]">
+        你收藏的文章都在这里
+      </p>
+    </header>
+
+    <div id="bookmarks-list" class="space-y-3">
+      <div class="text-center py-16 text-[var(--color-text-muted)]" id="bookmarks-empty">
+        <p class="text-lg mb-2">暂无收藏</p>
+        <p class="text-sm">在文章页点击「收藏」按钮来保存喜欢的内容</p>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-[var(--color-border)]">
+      <h2 class="text-xl font-bold mb-4">📖 最近阅读</h2>
+      <div id="history-list" class="space-y-2">
+        <p class="text-sm text-[var(--color-text-muted)]" id="history-empty">暂无阅读记录</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const bookmarksList = document.getElementById('bookmarks-list');
+  const bookmarksEmpty = document.getElementById('bookmarks-empty');
+  const historyList = document.getElementById('history-list');
+  const historyEmpty = document.getElementById('history-empty');
+
+  // Render bookmarks
+  try {
+    const bookmarks: { slug: string; title: string; date: string }[] = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+    if (bookmarks.length > 0 && bookmarksList && bookmarksEmpty) {
+      bookmarksEmpty.remove();
+      bookmarks.forEach((b) => {
+        const el = document.createElement('a');
+        el.href = b.slug.startsWith('/') ? b.slug : `/blog/${b.slug}`;
+        el.className = 'block p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-sm bg-[var(--color-bg)] transition-all';
+        el.innerHTML = `
+          <div class="flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <h3 class="font-medium text-sm truncate">${b.title}</h3>
+              <p class="text-xs text-[var(--color-text-muted)] mt-1">收藏于 ${new Date(b.date).toLocaleDateString('zh-CN')}</p>
+            </div>
+            <button class="remove-bookmark flex-shrink-0 text-xs text-red-500 hover:text-red-600 cursor-pointer" data-slug="${b.slug}">移除</button>
+          </div>
+        `;
+        bookmarksList.appendChild(el);
+      });
+
+      // Remove bookmark handlers
+      bookmarksList.querySelectorAll('.remove-bookmark').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const slug = (btn as HTMLElement).dataset.slug || '';
+          const updated = bookmarks.filter((b) => b.slug !== slug);
+          localStorage.setItem('bookmarks', JSON.stringify(updated));
+          window.location.reload();
+        });
+      });
+    }
+  } catch { /* ignore */ }
+
+  // Render reading history
+  try {
+    const history: { slug: string; title: string; date: string }[] = JSON.parse(localStorage.getItem('reading-history') || '[]');
+    if (history.length > 0 && historyList && historyEmpty) {
+      historyEmpty.remove();
+      history.slice(0, 20).forEach((h) => {
+        const el = document.createElement('a');
+        el.href = h.slug;
+        el.className = 'flex items-center justify-between gap-4 py-2 px-3 rounded-lg hover:bg-[var(--color-bg-tertiary)] transition-colors';
+        el.innerHTML = `
+          <span class="text-sm truncate">${h.title.replace(/ \|.*$/, '')}</span>
+          <span class="text-xs text-[var(--color-text-muted)] flex-shrink-0">${new Date(h.date).toLocaleDateString('zh-CN')}</span>
+        `;
+        historyList.appendChild(el);
+      });
+    }
+  } catch { /* ignore */ }
+</script>

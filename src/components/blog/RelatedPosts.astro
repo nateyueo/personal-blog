@@ -1,0 +1,70 @@
+---
+import { formatDate } from '@/utils/date';
+
+interface Props {
+  currentSlug: string;
+  currentTags: string[];
+  currentCategory: string;
+  allPosts: {
+    id: string;
+    data: {
+      title: string;
+      description: string;
+      publishDate: Date;
+      category: string;
+      tags: string[];
+      cover?: string;
+    };
+  }[];
+  maxPosts?: number;
+}
+
+const { currentSlug, currentTags, currentCategory, allPosts, maxPosts = 3 } = Astro.props;
+
+// Score posts by relevance: tags overlap + same category
+const scored = allPosts
+  .filter((p) => p.id !== currentSlug)
+  .map((p) => {
+    let score = 0;
+    // Tag overlap
+    const overlap = p.data.tags.filter((t) => currentTags.includes(t)).length;
+    score += overlap * 3;
+    // Same category
+    if (p.data.category === currentCategory) score += 2;
+    return { post: p, score };
+  })
+  .filter((s) => s.score > 0)
+  .sort((a, b) => b.score - a.score || b.post.data.publishDate.valueOf() - a.post.data.publishDate.valueOf())
+  .slice(0, maxPosts);
+---
+
+{scored.length > 0 && (
+  <section class="mt-12 pt-8 border-t border-[var(--color-border)]">
+    <h2 class="text-xl font-bold mb-6">相关文章</h2>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {scored.map(({ post }) => (
+        <a
+          href={`/blog/${post.id}`}
+          class="group block p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-md bg-[var(--color-bg)] transition-all"
+        >
+          {post.data.cover && (
+            <div class="mb-3 rounded-lg overflow-hidden aspect-video bg-[var(--color-bg-tertiary)]">
+              <img
+                src={post.data.cover}
+                alt={post.data.title}
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            </div>
+          )}
+          <h3 class="font-semibold text-sm line-clamp-2 group-hover:text-[var(--color-primary)] transition-colors mb-1">
+            {post.data.title}
+          </h3>
+          <p class="text-xs text-[var(--color-text-muted)]">
+            {formatDate(post.data.publishDate)}
+          </p>
+        </a>
+      ))}
+    </div>
+  </section>
+)}

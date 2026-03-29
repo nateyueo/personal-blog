@@ -1,0 +1,103 @@
+---
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+
+const reactions = [
+  { emoji: '\uD83D\uDC4D', label: '赞', key: 'like' },
+  { emoji: '\u2764\uFE0F', label: '喜欢', key: 'heart' },
+  { emoji: '\uD83C\uDF89', label: '庆祝', key: 'celebrate' },
+  { emoji: '\uD83E\uDD14', label: '有启发', key: 'thinking' },
+];
+---
+
+<div class="reaction-bar flex items-center gap-3 flex-wrap" data-slug={slug}>
+  {reactions.map((r) => (
+    <button
+      class="reaction-btn group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5 transition-all cursor-pointer text-sm"
+      data-reaction={r.key}
+      aria-label={r.label}
+    >
+      <span class="text-base group-hover:scale-110 transition-transform inline-block">{r.emoji}</span>
+      <span class="reaction-count text-xs text-[var(--color-text-muted)] tabular-nums">0</span>
+    </button>
+  ))}
+</div>
+
+<script>
+  document.querySelectorAll('.reaction-bar').forEach((bar) => {
+    const slug = (bar as HTMLElement).dataset.slug || '';
+    const storageKey = `reactions:${slug}`;
+    const myReactionsKey = `my-reactions:${slug}`;
+
+    // Load from localStorage
+    const loadCounts = (): Record<string, number> => {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || '{}');
+      } catch { return {}; }
+    };
+
+    const loadMine = (): string[] => {
+      try {
+        return JSON.parse(localStorage.getItem(myReactionsKey) || '[]');
+      } catch { return []; }
+    };
+
+    const saveCounts = (counts: Record<string, number>) => {
+      localStorage.setItem(storageKey, JSON.stringify(counts));
+    };
+
+    const saveMine = (mine: string[]) => {
+      localStorage.setItem(myReactionsKey, JSON.stringify(mine));
+    };
+
+    const render = () => {
+      const counts = loadCounts();
+      const mine = loadMine();
+      bar.querySelectorAll('.reaction-btn').forEach((btn) => {
+        const key = (btn as HTMLElement).dataset.reaction || '';
+        const countEl = btn.querySelector('.reaction-count');
+        if (countEl) countEl.textContent = String(counts[key] || 0);
+        if (mine.includes(key)) {
+          btn.classList.add('border-[var(--color-primary)]', 'bg-[var(--color-primary)]/10');
+        } else {
+          btn.classList.remove('border-[var(--color-primary)]', 'bg-[var(--color-primary)]/10');
+        }
+      });
+    };
+
+    bar.querySelectorAll('.reaction-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = (btn as HTMLElement).dataset.reaction || '';
+        const counts = loadCounts();
+        const mine = loadMine();
+
+        if (mine.includes(key)) {
+          // Unreact
+          counts[key] = Math.max((counts[key] || 0) - 1, 0);
+          const idx = mine.indexOf(key);
+          mine.splice(idx, 1);
+        } else {
+          // React
+          counts[key] = (counts[key] || 0) + 1;
+          mine.push(key);
+        }
+
+        saveCounts(counts);
+        saveMine(mine);
+        render();
+
+        // Quick animation
+        const emoji = btn.querySelector('span');
+        if (emoji) {
+          emoji.classList.add('scale-125');
+          setTimeout(() => emoji.classList.remove('scale-125'), 200);
+        }
+      });
+    });
+
+    render();
+  });
+</script>

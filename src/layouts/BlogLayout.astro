@@ -3,8 +3,16 @@ import BaseLayout from './BaseLayout.astro';
 import Breadcrumb from '@/components/common/Breadcrumb.astro';
 import TableOfContents from '@/components/common/TableOfContents.astro';
 import PostMeta from '@/components/blog/PostMeta.astro';
+import ReadingProgress from '@/components/blog/ReadingProgress.astro';
+import BackToTop from '@/components/blog/BackToTop.astro';
+import ShareButtons from '@/components/blog/ShareButtons.astro';
+import ReactionBar from '@/components/blog/ReactionBar.astro';
+import BookmarkButton from '@/components/blog/BookmarkButton.astro';
+import RelatedPosts from '@/components/blog/RelatedPosts.astro';
+import NewsletterForm from '@/components/blog/NewsletterForm.astro';
 import { SITE } from '@/data/site';
 import { formatDateISO } from '@/utils/date';
+import { getCollection } from 'astro:content';
 
 interface Props {
   frontmatter: {
@@ -21,9 +29,10 @@ interface Props {
   };
   headings: { depth: number; slug: string; text: string }[];
   readingTime: number;
+  slug: string;
 }
 
-const { frontmatter, headings, readingTime } = Astro.props;
+const { frontmatter, headings, readingTime, slug } = Astro.props;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -43,6 +52,13 @@ const breadcrumbs = [
   { label: '博客', href: '/blog' },
   { label: frontmatter.title },
 ];
+
+const pageUrl = `${Astro.site || 'https://personal-blog.pages.dev'}blog/${slug}`;
+
+// Get all posts for related posts
+const allPosts = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? !data.draft : true;
+});
 ---
 
 <BaseLayout
@@ -51,6 +67,8 @@ const breadcrumbs = [
   ogType="article"
   jsonLd={jsonLd}
 >
+  <ReadingProgress />
+
   <div class="container py-8">
     <div class="mb-6">
       <Breadcrumb items={breadcrumbs} />
@@ -65,25 +83,42 @@ const breadcrumbs = [
             <span class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{frontmatter.category}</span>
           </div>
 
+          {frontmatter.cover && (
+            <div class="mb-6 rounded-xl overflow-hidden aspect-video bg-[var(--color-bg-tertiary)]">
+              <img
+                src={frontmatter.cover}
+                alt={frontmatter.coverAlt || frontmatter.title}
+                class="w-full h-full object-cover"
+                loading="eager"
+              />
+            </div>
+          )}
+
           <h1 class="text-3xl sm:text-4xl font-bold leading-tight mb-4">{frontmatter.title}</h1>
 
           <p class="text-lg text-[var(--color-text-secondary)] mb-4">{frontmatter.description}</p>
 
-          <PostMeta
-            publishDate={frontmatter.publishDate}
-            updatedDate={frontmatter.updatedDate}
-            readingTime={readingTime}
-            tags={frontmatter.tags}
-          />
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <PostMeta
+              publishDate={frontmatter.publishDate}
+              updatedDate={frontmatter.updatedDate}
+              readingTime={readingTime}
+              tags={frontmatter.tags}
+            />
+            <div class="flex items-center gap-2">
+              <BookmarkButton slug={slug} title={frontmatter.title} />
+            </div>
+          </div>
         </header>
 
         <div class="prose prose-lg max-w-none prose-headings:scroll-mt-20 prose-a:text-[var(--color-primary)] prose-a:no-underline hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none dark:prose-invert">
           <slot />
         </div>
 
-        <!-- Tags -->
-        {frontmatter.tags.length > 0 && (
-          <div class="mt-12 pt-6 border-t border-[var(--color-border)]">
+        <!-- Post Footer: Tags + Share + Reactions -->
+        <div class="mt-12 pt-6 border-t border-[var(--color-border)] space-y-6">
+          <!-- Tags -->
+          {frontmatter.tags.length > 0 && (
             <div class="flex flex-wrap gap-2">
               {frontmatter.tags.map((tag: string) => (
                 <a
@@ -94,8 +129,27 @@ const breadcrumbs = [
                 </a>
               ))}
             </div>
-          </div>
-        )}
+          )}
+
+          <!-- Reactions -->
+          <ReactionBar slug={slug} />
+
+          <!-- Share -->
+          <ShareButtons title={frontmatter.title} url={pageUrl} description={frontmatter.description} />
+        </div>
+
+        <!-- Related Posts -->
+        <RelatedPosts
+          currentSlug={slug}
+          currentTags={frontmatter.tags}
+          currentCategory={frontmatter.category}
+          allPosts={allPosts}
+        />
+
+        <!-- Newsletter CTA -->
+        <div class="mt-12">
+          <NewsletterForm />
+        </div>
       </article>
 
       <!-- Table of Contents (Desktop) -->
@@ -104,4 +158,6 @@ const breadcrumbs = [
       </aside>
     </div>
   </div>
+
+  <BackToTop />
 </BaseLayout>

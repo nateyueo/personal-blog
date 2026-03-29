@@ -44,4 +44,14 @@ const docs = defineCollection({
   }),
 });
 
-export const collections = { blog, docs };
+const thoughts = defineCollection({
+  loader: glob({ base: './src/content/thoughts', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    publishDate: z.coerce.date(),
+    tags: z.array(z.string()).max(3).default([]),
+    mood: z.enum(['happy', 'thinking', 'excited', 'neutral', 'sad']).default('neutral'),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog, docs, thoughts };

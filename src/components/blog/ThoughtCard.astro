@@ -1,0 +1,39 @@
+---
+import { formatDate } from '@/utils/date';
+
+interface Props {
+  content: string;
+  publishDate: Date;
+  tags: string[];
+  mood: string;
+  slug: string;
+}
+
+const { content, publishDate, tags, mood, slug } = Astro.props;
+
+const moodEmoji: Record<string, string> = {
+  happy: '😊',
+  thinking: '🤔',
+  excited: '🎉',
+  neutral: '📝',
+  sad: '😢',
+};
+---
+
+<article class="thought-card relative p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] hover:shadow-sm transition-shadow">
+  <div class="flex items-start gap-3">
+    <span class="text-2xl flex-shrink-0 mt-0.5" title={mood}>{moodEmoji[mood] || '📝'}</span>
+    <div class="flex-1 min-w-0">
+      <div class="prose prose-sm max-w-none dark:prose-invert mb-3" set:html={content} />
+
+      <div class="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+        <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+        <div class="flex gap-1.5">
+          {tags.map((tag: string) => (
+            <span class="px-2 py-0.5 rounded bg-[var(--color-bg-tertiary)]">#{tag}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</article>

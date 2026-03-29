@@ -1,0 +1,32 @@
+---
+// Reading progress bar - shows scroll progress at top of page
+---
+
+<div id="reading-progress-container" class="fixed top-0 left-0 w-full h-[3px] z-50 pointer-events-none">
+  <div id="reading-progress-bar" class="h-full w-0 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] transition-[width] duration-150 ease-out"></div>
+</div>
+
+<script>
+  const bar = document.getElementById('reading-progress-bar');
+  if (bar) {
+    const update = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+      bar.style.width = `${progress}%`;
+    };
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          update();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    update();
+  }
+</script>

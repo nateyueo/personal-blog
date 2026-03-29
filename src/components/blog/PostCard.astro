@@ -9,36 +9,50 @@ interface Props {
   tags: string[];
   slug: string;
   featured?: boolean;
+  cover?: string;
 }
 
-const { title, description, publishDate, category, tags, slug, featured } = Astro.props;
+const { title, description, publishDate, category, tags, slug, featured, cover } = Astro.props;
 ---
 
-<article class="group relative p-5 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-md bg-[var(--color-bg)] transition-all domain-bar-blog">
-  {featured && (
-    <span class="absolute top-3 right-3 px-2 py-0.5 text-xs font-semibold rounded bg-[var(--color-domain-blog)]/10 text-[var(--color-domain-blog)]">
-      精选
-    </span>
+<article class="group relative rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-md bg-[var(--color-bg)] transition-all domain-bar-blog overflow-hidden">
+  {cover && (
+    <div class="aspect-[2.5/1] overflow-hidden bg-[var(--color-bg-tertiary)]">
+      <img
+        src={cover}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+      />
+    </div>
   )}
 
-  <div class="flex items-center gap-2 mb-2">
-    <span class="domain-badge domain-badge-blog">{category}</span>
-  </div>
+  <div class="p-5">
+    {featured && (
+      <span class="absolute top-3 right-3 px-2 py-0.5 text-xs font-semibold rounded bg-[var(--color-domain-blog)]/10 text-[var(--color-domain-blog)]">
+        精选
+      </span>
+    )}
 
-  <h3 class="text-lg font-semibold mb-2 group-hover:text-[var(--color-primary)] transition-colors">
-    <a href={`/blog/${slug}`} class="after:absolute after:inset-0">
-      {title}
-    </a>
-  </h3>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="domain-badge domain-badge-blog">{category}</span>
+    </div>
 
-  <p class="text-sm text-[var(--color-text-secondary)] line-clamp-2 mb-3">{description}</p>
+    <h3 class="text-lg font-semibold mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+      <a href={`/blog/${slug}`} class="after:absolute after:inset-0">
+        {title}
+      </a>
+    </h3>
 
-  <div class="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
-    <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
-    <div class="flex gap-2">
-      {tags.slice(0, 3).map((tag: string) => (
-        <span class="px-2 py-0.5 rounded bg-[var(--color-bg-tertiary)]">#{tag}</span>
-      ))}
+    <p class="text-sm text-[var(--color-text-secondary)] line-clamp-2 mb-3">{description}</p>
+
+    <div class="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+      <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+      <div class="flex gap-2">
+        {tags.slice(0, 3).map((tag: string) => (
+          <span class="px-2 py-0.5 rounded bg-[var(--color-bg-tertiary)]">#{tag}</span>
+        ))}
+      </div>
     </div>
   </div>
 </article>

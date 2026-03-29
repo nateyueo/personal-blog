@@ -1,0 +1,63 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ThoughtCard from '@/components/blog/ThoughtCard.astro';
+import { getCollection, render } from 'astro:content';
+
+const allThoughts = await getCollection('thoughts', ({ data }) => {
+  return import.meta.env.PROD ? !data.draft : true;
+});
+
+const sortedThoughts = allThoughts.sort(
+  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
+);
+
+// Render markdown for each thought
+const renderedThoughts = await Promise.all(
+  sortedThoughts.map(async (thought) => {
+    const { Content } = await render(thought);
+    return { thought, Content };
+  })
+);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '随想',
+  description: '碎片化的想法、灵感与日常记录',
+};
+---
+
+<BaseLayout title="随想" description="碎片化的想法、灵感与日常记录" jsonLd={jsonLd}>
+  <div class="container py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">💭 随想</h1>
+      <p class="text-[var(--color-text-secondary)]">
+        碎片化的想法、灵感与日常记录，共 {sortedThoughts.length} 条
+      </p>
+    </header>
+
+    <!-- Timeline -->
+    <div class="relative">
+      <div class="absolute left-[17px] top-0 bottom-0 w-px bg-[var(--color-border)] hidden sm:block"></div>
+
+      <div class="space-y-4 sm:pl-10">
+        {renderedThoughts.map(({ thought }) => (
+          <ThoughtCard
+            content={thought.body || ''}
+            publishDate={thought.data.publishDate}
+            tags={thought.data.tags}
+            mood={thought.data.mood}
+            slug={thought.id}
+          />
+        ))}
+      </div>
+    </div>
+
+    {sortedThoughts.length === 0 && (
+      <div class="text-center py-16 text-[var(--color-text-muted)]">
+        <p class="text-lg mb-2">暂无随想</p>
+        <p class="text-sm">灵感还在酝酿中...</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>

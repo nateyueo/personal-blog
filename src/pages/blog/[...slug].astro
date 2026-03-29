@@ -19,6 +19,6 @@ const { Content, headings } = await render(post);
 const readingTime = getReadingTime(post.body || '');
 ---
 
-<BlogLayout frontmatter={post.data} headings={headings} readingTime={readingTime}>
+<BlogLayout frontmatter={post.data} headings={headings} readingTime={readingTime} slug={post.id}>
   <Content />
 </BlogLayout>

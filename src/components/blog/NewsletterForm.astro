@@ -1,0 +1,64 @@
+---
+// Newsletter subscription form (client-side only placeholder — connect to backend later)
+---
+
+<div class="newsletter-form rounded-2xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-primary)]/5 to-[var(--color-accent)]/5 p-6 sm:p-8">
+  <div class="flex items-start gap-3 mb-4">
+    <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    </div>
+    <div>
+      <h3 class="font-bold text-lg">订阅通讯</h3>
+      <p class="text-sm text-[var(--color-text-secondary)]">获取最新文章、产品思考与有趣发现，直达你的邮箱。</p>
+    </div>
+  </div>
+
+  <form id="newsletter-form" class="flex gap-2">
+    <input
+      type="email"
+      name="email"
+      placeholder="your@email.com"
+      required
+      class="flex-1 px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
+    />
+    <button
+      type="submit"
+      class="px-5 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary-dark)] transition-colors whitespace-nowrap cursor-pointer"
+    >
+      订阅
+    </button>
+  </form>
+
+  <p id="newsletter-msg" class="mt-3 text-xs text-[var(--color-text-muted)] hidden"></p>
+</div>
+
+<script>
+  const form = document.getElementById('newsletter-form') as HTMLFormElement;
+  const msg = document.getElementById('newsletter-msg') as HTMLElement;
+
+  if (form && msg) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = new FormData(form).get('email') as string;
+      if (!email) return;
+
+      // Store locally for now (connect to API later)
+      try {
+        const subs: string[] = JSON.parse(localStorage.getItem('newsletter-subs') || '[]');
+        if (!subs.includes(email)) {
+          subs.push(email);
+          localStorage.setItem('newsletter-subs', JSON.stringify(subs));
+        }
+      } catch { /* ignore */ }
+
+      msg.textContent = '🎉 订阅成功！感谢关注，新内容将第一时间送达。';
+      msg.classList.remove('hidden');
+      msg.classList.add('text-green-600', 'dark:text-green-400');
+      form.reset();
+
+      setTimeout(() => { msg.classList.add('hidden'); }, 5000);
+    });
+  }
+</script>

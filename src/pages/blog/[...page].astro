@@ -1,0 +1,108 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PostCard from '@/components/blog/PostCard.astro';
+import { getCollection } from 'astro:content';
+import { POSTS_PER_PAGE } from '@/data/site';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
+
+  const sortedPosts = allPosts.sort(
+    (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
+  );
+
+  const totalPages = Math.ceil(sortedPosts.length / POSTS_PER_PAGE);
+  // Generate /blog (page 1), /blog/2, /blog/3, etc.
+  return Array.from({ length: totalPages }, (_, i) => ({
+    params: { page: i === 0 ? undefined : String(i + 1) },
+    props: {
+      posts: sortedPosts.slice(i * POSTS_PER_PAGE, (i + 1) * POSTS_PER_PAGE),
+      currentPage: i + 1,
+      totalPages,
+      totalPosts: sortedPosts.length,
+    },
+  }));
+}
+
+const { posts, currentPage, totalPages, totalPosts } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '博客',
+  description: '技术文章、产品思考与学习笔记',
+};
+---
+
+<BaseLayout title={currentPage > 1 ? `博客 - 第 ${currentPage} 页` : '博客'} description="技术文章、产品思考与学习笔记" jsonLd={jsonLd}>
+  <div class="container py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">博客</h1>
+      <p class="text-[var(--color-text-secondary)]">
+        技术文章、产品思考与学习笔记，共 {totalPosts} 篇
+      </p>
+    </header>
+
+    <div class="grid gap-4">
+      {posts.map((post: any) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          publishDate={post.data.publishDate}
+          category={post.data.category}
+          tags={post.data.tags}
+          slug={post.id}
+          featured={post.data.featured}
+          cover={post.data.cover}
+        />
+      ))}
+    </div>
+
+    {posts.length === 0 && (
+      <div class="text-center py-16 text-[var(--color-text-muted)]">
+        <p class="text-lg mb-2">暂无文章</p>
+        <p class="text-sm">内容正在准备中，敬请期待</p>
+      </div>
+    )}
+
+    {/* Pagination */}
+    {totalPages > 1 && (
+      <nav class="mt-10 flex justify-center items-center gap-2" aria-label="博客分页">
+        {currentPage > 1 && (
+          <a
+            href={currentPage === 2 ? '/blog' : `/blog/${currentPage - 1}`}
+            class="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+          >
+            ← 上一页
+          </a>
+        )}
+
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <a
+            href={page === 1 ? '/blog' : `/blog/${page}`}
+            class:list={[
+              'w-10 h-10 flex items-center justify-center text-sm rounded-lg transition-colors',
+              page === currentPage
+                ? 'bg-[var(--color-primary)] text-white font-medium'
+                : 'border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]',
+            ]}
+            aria-current={page === currentPage ? 'page' : undefined}
+          >
+            {page}
+          </a>
+        ))}
+
+        {currentPage < totalPages && (
+          <a
+            href={`/blog/${currentPage + 1}`}
+            class="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+          >
+            下一页 →
+          </a>
+        )}
+      </nav>
+    )}
+  </div>
+</BaseLayout>
