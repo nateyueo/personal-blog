@@ -8,7 +8,6 @@ import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
-import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   site: process.env.SITE_URL || 'https://personal-blog.pages.dev',
@@ -59,5 +58,4 @@ export default defineConfig({
     domains: [],
   },
 
-  adapter: cloudflare(),
 });
