@@ -1,0 +1,113 @@
+---
+/**
+ * Waline 评论组件
+ * 通过 CDN 加载 Waline 客户端，无需 npm 安装
+ * serverURL 需要用户自行部署 Waline 后端到 Vercel 并配置
+ */
+interface Props {
+  path?: string;
+}
+
+const { path } = Astro.props;
+const commentPath = path || Astro.url.pathname;
+---
+
+<section class="mt-12 pt-8 border-t border-[var(--color-border)]">
+  <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+    评论
+  </h2>
+  <div id="waline-comment"></div>
+</section>
+
+<!-- Waline CSS -->
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
+
+<script define:vars={{ commentPath }}>
+  // 将 path 传递给客户端
+  window.__walinePath = commentPath;
+</script>
+
+<script>
+  function initWaline() {
+    // Waline 后端地址 — 用户需替换为自己部署的 Vercel URL
+    // 部署教程: https://waline.js.org/guide/get-started/
+    const WALINE_SERVER_URL = import.meta.env.PUBLIC_WALINE_SERVER_URL || '';
+
+    if (!WALINE_SERVER_URL) {
+      const el = document.getElementById('waline-comment');
+      if (el) {
+        el.innerHTML = `
+          <div class="p-6 rounded-xl border border-dashed border-[var(--color-border)] text-center text-[var(--color-text-muted)]">
+            <p class="text-sm mb-2">评论系统尚未配置</p>
+            <p class="text-xs">设置环境变量 <code class="px-1.5 py-0.5 rounded bg-[var(--color-bg-tertiary)] font-mono">PUBLIC_WALINE_SERVER_URL</code> 以启用 Waline 评论</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    const path = (window as any).__walinePath || window.location.pathname;
+
+    import('https://unpkg.com/@waline/client@v3/dist/waline.js').then(({ init }) => {
+      const isDark = document.documentElement.classList.contains('dark');
+
+      init({
+        el: '#waline-comment',
+        serverURL: WALINE_SERVER_URL,
+        path,
+        lang: 'zh-CN',
+        dark: 'html.dark',
+        emoji: [
+          '//unpkg.com/@waline/emojis@1.2.0/weibo',
+          '//unpkg.com/@waline/emojis@1.2.0/bilibili',
+        ],
+        meta: ['nick', 'mail', 'link'],
+        requiredMeta: ['nick'],
+        wordLimit: 500,
+        pageSize: 10,
+        login: 'enable',
+        locale: {
+          placeholder: '留下你的评论吧 ✨（支持 Markdown）',
+          sofa: '快来发表第一条评论吧~',
+          admin: '博主',
+          level0: '路人',
+          level1: '常客',
+          level2: '老友',
+          level3: '铁粉',
+        },
+      });
+    }).catch((err) => {
+      console.warn('Waline failed to load:', err);
+    });
+  }
+
+  // Run on page load and after Astro navigation
+  initWaline();
+  document.addEventListener('astro:after-swap', initWaline);
+</script>
+
+<style>
+  /* Waline 样式覆盖，适配博客主题 */
+  :global(#waline-comment) {
+    --waline-theme-color: var(--color-primary);
+    --waline-active-color: var(--color-primary-dark);
+    --waline-bg-color: var(--color-bg);
+    --waline-bg-color-light: var(--color-bg-secondary);
+    --waline-bg-color-hover: var(--color-bg-tertiary);
+    --waline-border-color: var(--color-border);
+    --waline-color: var(--color-text);
+    --waline-font-size: 0.875rem;
+    --waline-border: 1px solid var(--color-border);
+  }
+
+  :global(#waline-comment .wl-editor) {
+    border-radius: 0.75rem;
+  }
+
+  :global(#waline-comment .wl-btn) {
+    border-radius: 0.5rem;
+  }
+</style>

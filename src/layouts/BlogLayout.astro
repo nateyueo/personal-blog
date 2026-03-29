@@ -10,6 +10,7 @@ import ReactionBar from '@/components/blog/ReactionBar.astro';
 import BookmarkButton from '@/components/blog/BookmarkButton.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import NewsletterForm from '@/components/blog/NewsletterForm.astro';
+import Comments from '@/components/blog/Comments.astro';
 import { SITE } from '@/data/site';
 import { formatDateISO } from '@/utils/date';
 import { getCollection } from 'astro:content';
@@ -54,6 +55,7 @@ const breadcrumbs = [
 ];
 
 const pageUrl = `${Astro.site || 'https://personal-blog.pages.dev'}blog/${slug}`;
+const ogImageUrl = `/og/${slug}.png`;
 
 // Get all posts for related posts
 const allPosts = await getCollection('blog', ({ data }) => {
@@ -64,6 +66,7 @@ const allPosts = await getCollection('blog', ({ data }) => {
 <BaseLayout
   title={frontmatter.title}
   description={frontmatter.description}
+  ogImage={ogImageUrl}
   ogType="article"
   jsonLd={jsonLd}
 >
@@ -145,6 +148,9 @@ const allPosts = await getCollection('blog', ({ data }) => {
           currentCategory={frontmatter.category}
           allPosts={allPosts}
         />
+
+        <!-- Comments -->
+        <Comments path={`/blog/${slug}`} />
 
         <!-- Newsletter CTA -->
         <div class="mt-12">
