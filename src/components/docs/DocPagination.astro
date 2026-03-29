@@ -1,0 +1,32 @@
+---
+interface Props {
+  prev?: { title: string; slug: string } | null;
+  next?: { title: string; slug: string } | null;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav class="mt-12 pt-6 border-t border-[var(--color-border)] grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label="文档翻页">
+    {prev ? (
+      <a
+        href={`/docs/${prev.slug}`}
+        class="group flex flex-col items-start p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-sm transition-all"
+      >
+        <span class="text-xs text-[var(--color-text-muted)] mb-1">← 上一篇</span>
+        <span class="text-sm font-medium group-hover:text-[var(--color-primary)] transition-colors">{prev.title}</span>
+      </a>
+    ) : <div />}
+
+    {next ? (
+      <a
+        href={`/docs/${next.slug}`}
+        class="group flex flex-col items-end p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-sm transition-all text-right"
+      >
+        <span class="text-xs text-[var(--color-text-muted)] mb-1">下一篇 →</span>
+        <span class="text-sm font-medium group-hover:text-[var(--color-primary)] transition-colors">{next.title}</span>
+      </a>
+    ) : <div />}
+  </nav>
+)}

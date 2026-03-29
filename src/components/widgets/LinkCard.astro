@@ -1,0 +1,35 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  icon?: string;
+}
+
+const { href, title, description, icon } = Astro.props;
+const isExternal = href.startsWith('http');
+---
+
+<a
+  href={href}
+  target={isExternal ? '_blank' : undefined}
+  rel={isExternal ? 'noopener noreferrer' : undefined}
+  class="group block my-4 p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:shadow-md bg-[var(--color-bg)] transition-all"
+>
+  <div class="flex items-start gap-3">
+    {icon && <span class="text-2xl mt-0.5">{icon}</span>}
+    <div class="flex-1 min-w-0">
+      <h4 class="font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors flex items-center gap-1">
+        {title}
+        {isExternal && (
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
+          </svg>
+        )}
+      </h4>
+      {description && (
+        <p class="mt-1 text-sm text-[var(--color-text-secondary)] line-clamp-2">{description}</p>
+      )}
+    </div>
+  </div>
+</a>

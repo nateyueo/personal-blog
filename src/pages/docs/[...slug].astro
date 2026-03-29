@@ -1,0 +1,43 @@
+---
+import DocsLayout from '@/layouts/DocsLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { getDocsSidebar } from '@/utils/docs-sidebar';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
+
+  const sidebarSections = await getDocsSidebar();
+
+  // Build a flat ordered list for prev/next navigation
+  const flatList = sidebarSections.flatMap((s) =>
+    s.items.map((item) => ({ title: item.title, slug: item.slug }))
+  );
+
+  return docs.map((doc) => {
+    const idx = flatList.findIndex((item) => item.slug === doc.id);
+    const prev = idx > 0 ? flatList[idx - 1] : null;
+    const next = idx < flatList.length - 1 ? flatList[idx + 1] : null;
+
+    return {
+      params: { slug: doc.id },
+      props: { doc, sidebarSections, prev, next },
+    };
+  });
+}
+
+const { doc, sidebarSections, prev, next } = Astro.props;
+const { Content, headings } = await render(doc);
+---
+
+<DocsLayout
+  frontmatter={doc.data}
+  headings={headings}
+  currentSlug={doc.id}
+  sidebarSections={sidebarSections}
+  prev={prev}
+  next={next}
+>
+  <Content />
+</DocsLayout>

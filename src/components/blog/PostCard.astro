@@ -1,0 +1,45 @@
+---
+import { formatDate } from '@/utils/date';
+import { getReadingTime, formatReadingTime } from '@/utils/reading-time';
+
+interface Props {
+  title: string;
+  description: string;
+  publishDate: Date;
+  category: string;
+  tags: string[];
+  slug: string;
+  featured?: boolean;
+}
+
+const { title, description, publishDate, category, tags, slug, featured } = Astro.props;
+---
+
+<article class="group relative p-5 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-md bg-[var(--color-bg)] transition-all domain-bar-blog">
+  {featured && (
+    <span class="absolute top-3 right-3 px-2 py-0.5 text-xs font-semibold rounded bg-[var(--color-domain-blog)]/10 text-[var(--color-domain-blog)]">
+      精选
+    </span>
+  )}
+
+  <div class="flex items-center gap-2 mb-2">
+    <span class="domain-badge domain-badge-blog">{category}</span>
+  </div>
+
+  <h3 class="text-lg font-semibold mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+    <a href={`/blog/${slug}`} class="after:absolute after:inset-0">
+      {title}
+    </a>
+  </h3>
+
+  <p class="text-sm text-[var(--color-text-secondary)] line-clamp-2 mb-3">{description}</p>
+
+  <div class="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+    <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+    <div class="flex gap-2">
+      {tags.slice(0, 3).map((tag: string) => (
+        <span class="px-2 py-0.5 rounded bg-[var(--color-bg-tertiary)]">#{tag}</span>
+      ))}
+    </div>
+  </div>
+</article>

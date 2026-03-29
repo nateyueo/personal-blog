@@ -1,0 +1,107 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumb from '@/components/common/Breadcrumb.astro';
+import TableOfContents from '@/components/common/TableOfContents.astro';
+import PostMeta from '@/components/blog/PostMeta.astro';
+import { SITE } from '@/data/site';
+import { formatDateISO } from '@/utils/date';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description: string;
+    publishDate: Date;
+    updatedDate?: Date;
+    category: string;
+    tags: string[];
+    series?: string;
+    seriesOrder?: number;
+    cover?: string;
+    coverAlt?: string;
+  };
+  headings: { depth: number; slug: string; text: string }[];
+  readingTime: number;
+}
+
+const { frontmatter, headings, readingTime } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: frontmatter.title,
+  description: frontmatter.description,
+  datePublished: formatDateISO(frontmatter.publishDate),
+  dateModified: frontmatter.updatedDate ? formatDateISO(frontmatter.updatedDate) : formatDateISO(frontmatter.publishDate),
+  author: {
+    '@type': 'Person',
+    name: SITE.author,
+  },
+  inLanguage: SITE.lang,
+};
+
+const breadcrumbs = [
+  { label: '博客', href: '/blog' },
+  { label: frontmatter.title },
+];
+---
+
+<BaseLayout
+  title={frontmatter.title}
+  description={frontmatter.description}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <div class="container py-8">
+    <div class="mb-6">
+      <Breadcrumb items={breadcrumbs} />
+    </div>
+
+    <div class="flex gap-8">
+      <!-- Main Content -->
+      <article class="flex-1 min-w-0 max-w-[var(--content-max-width)]">
+        <header class="mb-8">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="domain-badge domain-badge-blog">博客</span>
+            <span class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{frontmatter.category}</span>
+          </div>
+
+          <h1 class="text-3xl sm:text-4xl font-bold leading-tight mb-4">{frontmatter.title}</h1>
+
+          <p class="text-lg text-[var(--color-text-secondary)] mb-4">{frontmatter.description}</p>
+
+          <PostMeta
+            publishDate={frontmatter.publishDate}
+            updatedDate={frontmatter.updatedDate}
+            readingTime={readingTime}
+            tags={frontmatter.tags}
+          />
+        </header>
+
+        <div class="prose prose-lg max-w-none prose-headings:scroll-mt-20 prose-a:text-[var(--color-primary)] prose-a:no-underline hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none dark:prose-invert">
+          <slot />
+        </div>
+
+        <!-- Tags -->
+        {frontmatter.tags.length > 0 && (
+          <div class="mt-12 pt-6 border-t border-[var(--color-border)]">
+            <div class="flex flex-wrap gap-2">
+              {frontmatter.tags.map((tag: string) => (
+                <a
+                  href={`/blog/tags/${tag}`}
+                  class="px-3 py-1 text-sm rounded-full bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-colors"
+                >
+                  #{tag}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </article>
+
+      <!-- Table of Contents (Desktop) -->
+      <aside class="hidden xl:block w-[var(--toc-width)] shrink-0">
+        <TableOfContents headings={headings} />
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

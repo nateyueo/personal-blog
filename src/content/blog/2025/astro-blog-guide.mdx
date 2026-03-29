@@ -1,0 +1,62 @@
+---
+title: "用 Astro 构建高性能中文博客"
+description: "从零开始使用 Astro 5.0 搭建一个 SEO 满分、性能极致的中文技术博客完整指南"
+publishDate: 2025-03-28
+category: tutorial
+tags: ["Astro", "性能优化", "SSG", "教程"]
+series: "Astro 实战系列"
+seriesOrder: 1
+featured: true
+draft: false
+---
+
+## 前言
+
+在选择静态站点生成器（Static Site Generator, SSG）时，我对比了 Hugo、Hexo、Next.js 和 Astro，最终选择了 Astro。
+
+## 为什么是 Astro？
+
+Astro 相比其他方案有几个独到之处：
+
+### 1. 内容驱动
+
+Astro 的 Content Collections 提供了类型安全的内容管理方案：
+
+```typescript
+// src/content/config.ts
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    publishDate: z.coerce.date(),
+    tags: z.array(z.string()),
+  }),
+});
+```
+
+### 2. 零 JS 默认
+
+Astro 默认不向客户端发送 JavaScript，只在需要交互时通过 Island 加载。
+
+### 3. 中文排版优化
+
+对于中文内容站点，需要特别注意：
+
+- **行高**：中文推荐 1.75-1.8，高于英文的 1.5-1.6
+- **最大宽度**：`75ch` 更适合中英文混排
+- **字间距**：微调 `letter-spacing: 0.02em`
+
+## 性能实测
+
+使用 Lighthouse 测试结果：
+
+- Performance: **99**
+- Accessibility: **95**
+- Best Practices: **100**
+- SEO: **100**
+
+## 小结
+
+Astro 是构建中文技术博客的优秀选择，特别适合内容驱动型站点。

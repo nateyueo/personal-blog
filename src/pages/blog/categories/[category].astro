@@ -1,0 +1,59 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PostCard from '@/components/blog/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const CATEGORY_LABELS: Record<string, string> = {
+  tech: '技术',
+  product: '产品',
+  thinking: '思考',
+  tutorial: '教程',
+  life: '生活',
+};
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
+
+  const categories = new Set<string>();
+  allPosts.forEach((post) => categories.add(post.data.category));
+
+  return [...categories].map((category) => ({
+    params: { category },
+    props: {
+      category,
+      posts: allPosts
+        .filter((p) => p.data.category === category)
+        .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()),
+    },
+  }));
+}
+
+const { category, posts } = Astro.props;
+const label = CATEGORY_LABELS[category] || category;
+---
+
+<BaseLayout title={label} description={`分类「${label}」下的所有文章`}>
+  <div class="container py-8">
+    <header class="mb-8">
+      <a href="/blog" class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors mb-2 inline-block">← 返回博客</a>
+      <h1 class="text-3xl font-bold mb-2">{label}</h1>
+      <p class="text-[var(--color-text-secondary)]">共 {posts.length} 篇文章</p>
+    </header>
+
+    <div class="grid gap-4">
+      {posts.map((post: any) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          publishDate={post.data.publishDate}
+          category={post.data.category}
+          tags={post.data.tags}
+          slug={post.id}
+          featured={post.data.featured}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,60 @@
+---
+interface Props {
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { headings } = Astro.props;
+const toc = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{toc.length > 0 && (
+  <nav class="toc hidden xl:block" aria-label="页内目录">
+    <div class="sticky top-20">
+      <h4 class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3">目录</h4>
+      <ul class="space-y-1 text-sm border-l-2 border-[var(--color-border)]">
+        {toc.map((heading) => (
+          <li class={heading.depth === 3 ? 'ml-3' : ''}>
+            <a
+              href={`#${heading.slug}`}
+              class="toc-link block py-1 pl-3 -ml-[2px] border-l-2 border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-primary)] transition-colors"
+              data-heading={heading.slug}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+)}
+
+<script>
+  const links = document.querySelectorAll<HTMLAnchorElement>('.toc-link');
+  if (links.length > 0) {
+    const headingEls = Array.from(links).map((link) => {
+      const id = link.getAttribute('data-heading');
+      return id ? document.getElementById(id) : null;
+    }).filter(Boolean) as HTMLElement[];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            links.forEach((l) => {
+              l.classList.remove('border-[var(--color-primary)]', 'text-[var(--color-text)]');
+              l.classList.add('border-transparent', 'text-[var(--color-text-muted)]');
+            });
+            const active = document.querySelector(`.toc-link[data-heading="${entry.target.id}"]`);
+            if (active) {
+              active.classList.remove('border-transparent', 'text-[var(--color-text-muted)]');
+              active.classList.add('border-[var(--color-primary)]', 'text-[var(--color-text)]');
+            }
+          }
+        }
+      },
+      { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+    );
+
+    headingEls.forEach((el) => observer.observe(el));
+  }
+</script>

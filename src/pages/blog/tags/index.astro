@@ -1,0 +1,44 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? !data.draft : true;
+});
+
+// Build tag map: tag -> count
+const tagMap = new Map<string, number>();
+for (const post of allPosts) {
+  for (const tag of post.data.tags) {
+    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+  }
+}
+
+const sortedTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
+const maxCount = Math.max(...sortedTags.map(([, c]) => c), 1);
+---
+
+<BaseLayout title="标签" description="按标签浏览所有文章">
+  <div class="container py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">标签</h1>
+      <p class="text-[var(--color-text-secondary)]">共 {sortedTags.length} 个标签</p>
+    </header>
+
+    <div class="flex flex-wrap gap-3">
+      {sortedTags.map(([tag, count]) => {
+        const scale = 0.75 + (count / maxCount) * 0.5;
+        return (
+          <a
+            href={`/blog/tags/${tag}`}
+            class="px-4 py-2 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all"
+            style={`font-size: ${scale}rem;`}
+          >
+            #{tag}
+            <span class="ml-1 text-xs text-[var(--color-text-muted)]">({count})</span>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</BaseLayout>

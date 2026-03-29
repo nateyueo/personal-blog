@@ -1,0 +1,50 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PostCard from '@/components/blog/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
+
+  const tags = new Set<string>();
+  allPosts.forEach((post) => post.data.tags.forEach((t) => tags.add(t)));
+
+  return [...tags].map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: allPosts
+        .filter((p) => p.data.tags.includes(tag))
+        .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()),
+    },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={`#${tag}`} description={`标签「${tag}」下的所有文章`}>
+  <div class="container py-8">
+    <header class="mb-8">
+      <a href="/blog/tags" class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors mb-2 inline-block">← 所有标签</a>
+      <h1 class="text-3xl font-bold mb-2">#{tag}</h1>
+      <p class="text-[var(--color-text-secondary)]">共 {posts.length} 篇文章</p>
+    </header>
+
+    <div class="grid gap-4">
+      {posts.map((post: any) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          publishDate={post.data.publishDate}
+          category={post.data.category}
+          tags={post.data.tags}
+          slug={post.id}
+          featured={post.data.featured}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

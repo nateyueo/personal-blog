@@ -1,0 +1,61 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PostCard from '@/components/blog/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
+
+  const seriesMap = new Map<string, typeof allPosts>();
+  allPosts.forEach((post) => {
+    if (post.data.series) {
+      if (!seriesMap.has(post.data.series)) {
+        seriesMap.set(post.data.series, []);
+      }
+      seriesMap.get(post.data.series)!.push(post);
+    }
+  });
+
+  return [...seriesMap.entries()].map(([series, posts]) => ({
+    params: { series },
+    props: {
+      series,
+      posts: posts.sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0)),
+    },
+  }));
+}
+
+const { series, posts } = Astro.props;
+---
+
+<BaseLayout title={series} description={`系列「${series}」的所有文章`}>
+  <div class="container py-8">
+    <header class="mb-8">
+      <a href="/blog" class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors mb-2 inline-block">← 返回博客</a>
+      <h1 class="text-3xl font-bold mb-2">📚 {series}</h1>
+      <p class="text-[var(--color-text-secondary)]">共 {posts.length} 篇文章，按顺序阅读效果更佳</p>
+    </header>
+
+    <div class="grid gap-4">
+      {posts.map((post: any, idx: number) => (
+        <div class="flex gap-4 items-start">
+          <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-sm font-bold">
+            {idx + 1}
+          </div>
+          <div class="flex-1">
+            <PostCard
+              title={post.data.title}
+              description={post.data.description}
+              publishDate={post.data.publishDate}
+              category={post.data.category}
+              tags={post.data.tags}
+              slug={post.id}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

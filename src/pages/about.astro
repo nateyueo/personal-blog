@@ -1,0 +1,48 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/data/site';
+---
+
+<BaseLayout title="关于" description={`关于 ${SITE.author} 和本站`}>
+  <div class="container py-8">
+    <div class="max-w-[var(--content-max-width)]">
+      <header class="mb-8">
+        <h1 class="text-3xl font-bold mb-4">关于</h1>
+      </header>
+
+      <div class="prose prose-lg max-w-none dark:prose-invert">
+        <h2>关于我</h2>
+        <p>
+          你好！我是 {SITE.author}，一个热爱产品设计与技术的人。这个站点是我沉淀知识、分享思考的地方。
+        </p>
+
+        <h2>关于本站</h2>
+        <p>
+          本站以「PRD 方法论沉淀」为主线，涵盖四大内容域：
+        </p>
+        <ul>
+          <li><strong>博客</strong> — 技术观点、案例复盘与产品思考</li>
+          <li><strong>PRD 手册</strong> — 流程、模板、清单与最佳实践</li>
+          <li><strong>工具箱</strong> — 实用工具与资源下载（规划中）</li>
+          <li><strong>个人名片</strong> — 就是本页了 :)</li>
+        </ul>
+
+        <h2>技术栈</h2>
+        <p>本站使用以下技术构建：</p>
+        <ul>
+          <li><a href="https://astro.build" target="_blank" rel="noopener">Astro</a> — 静态站点生成框架</li>
+          <li><a href="https://tailwindcss.com" target="_blank" rel="noopener">Tailwind CSS</a> — 原子化 CSS 框架</li>
+          <li><a href="https://pages.cloudflare.com" target="_blank" rel="noopener">Cloudflare Pages</a> — CDN 托管</li>
+        </ul>
+
+        <h2>联系方式</h2>
+        <p>
+          如有合作意向或建议反馈，欢迎通过以下方式联系：
+        </p>
+        <ul>
+          <li>GitHub: <a href="https://github.com" target="_blank" rel="noopener">@Creeper</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
