@@ -54,7 +54,7 @@
 </div>
 
 <script>
-  import Fuse from 'fuse.js';
+  import Fuse, { type FuseResult } from 'fuse.js';
 
   interface SearchItem {
     type: 'blog' | 'docs';
@@ -64,6 +64,8 @@
     category: string;
     url: string;
   }
+
+  type ItemType = SearchItem['type'];
 
   let fuse: Fuse<SearchItem> | null = null;
   let searchData: SearchItem[] = [];
@@ -115,7 +117,7 @@
     noResultsEl.classList.add('hidden');
   }
 
-  function renderResults(results: Fuse.FuseResult<SearchItem>[]) {
+  function renderResults(results: FuseResult<SearchItem>[]) {
     if (results.length === 0) {
       emptyEl.classList.add('hidden');
       listEl.classList.add('hidden');
@@ -127,8 +129,8 @@
     noResultsEl.classList.add('hidden');
     listEl.classList.remove('hidden');
 
-    const typeLabel = { blog: '博客', docs: '手册' };
-    const typeColor = {
+    const typeLabel: Record<ItemType, string> = { blog: '博客', docs: '手册' };
+    const typeColor: Record<ItemType, string> = {
       blog: 'bg-[var(--color-domain-blog)]/10 text-[var(--color-domain-blog)]',
       docs: 'bg-[var(--color-domain-docs)]/10 text-[var(--color-domain-docs)]',
     };
