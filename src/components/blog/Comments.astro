@@ -10,6 +10,7 @@ interface Props {
 
 const { path } = Astro.props;
 const commentPath = path || Astro.url.pathname;
+const walineServerUrl = import.meta.env.PUBLIC_WALINE_SERVER_URL || '';
 ---
 
 <section class="mt-12 pt-8 border-t border-[var(--color-border)]">
@@ -25,16 +26,15 @@ const commentPath = path || Astro.url.pathname;
 <!-- Waline CSS -->
 <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
 
-<script define:vars={{ commentPath }}>
-  // 将 path 传递给客户端
+<script define:vars={{ commentPath, walineServerUrl }}>
+  // 将变量传递给客户端
   window.__walinePath = commentPath;
+  window.__walineServerUrl = walineServerUrl;
 </script>
 
 <script>
   function initWaline() {
-    // Waline 后端地址 — 用户需替换为自己部署的 Vercel URL
-    // 部署教程: https://waline.js.org/guide/get-started/
-    const WALINE_SERVER_URL = import.meta.env.PUBLIC_WALINE_SERVER_URL || '';
+    const WALINE_SERVER_URL = (window as any).__walineServerUrl || '';
 
     if (!WALINE_SERVER_URL) {
       const el = document.getElementById('waline-comment');
