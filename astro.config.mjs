@@ -10,7 +10,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
 
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://personal-blog.pages.dev',
+  site: process.env.SITE_URL || 'https://aichichips.shop',
   output: 'static',
 
   integrations: [

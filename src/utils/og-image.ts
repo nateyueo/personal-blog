@@ -200,7 +200,7 @@ export async function generateOgImage({
                       fontSize: '18px',
                       color: '#64748b',
                     },
-                    children: 'personal-blog.pages.dev',
+                    children: 'aichichips.shop',
                   },
                 },
               ],
