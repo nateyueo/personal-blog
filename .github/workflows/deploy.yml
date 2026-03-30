@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Build & Verify
 
 on:
   push:
@@ -28,35 +28,10 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL || 'https://personal-blog.pages.dev' }}
 
-      - name: Upload build artifact
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist/
-
-  deploy:
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-      - run: npx astro build
-        env:
-          SITE_URL: ${{ vars.SITE_URL || 'https://personal-blog.pages.dev' }}
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=personal-blog
+      - name: Verify build output
+        run: |
+          echo "📦 Build output summary:"
+          echo "  Total files: $(find dist -type f | wc -l)"
+          echo "  HTML pages: $(find dist -name '*.html' | wc -l)"
+          echo "  OG images: $(find dist -path '*/og/*' -name '*.png' | wc -l)"
+          ls -la dist/
